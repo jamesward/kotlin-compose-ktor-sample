@@ -1,7 +1,6 @@
 plugins {
     id("com.android.application")  version "7.2.2"
     kotlin("android")              version "1.7.10"
-    kotlin("plugin.serialization") version "1.7.10"
 }
 
 java {
@@ -23,10 +22,8 @@ dependencies {
     implementation(kotlin("stdlib"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
 
-    implementation("io.ktor:ktor-client-core:$ktorVersion")
-    implementation("io.ktor:ktor-client-android:$ktorVersion")
-    implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+
+    implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
 
     implementation("androidx.appcompat:appcompat:1.5.0")
     implementation("androidx.activity:activity-compose:1.5.1")

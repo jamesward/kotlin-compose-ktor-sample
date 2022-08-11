@@ -18,41 +18,28 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.request.*
-import io.ktor.serialization.kotlinx.json.*
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
+import com.squareup.moshi.Json
+import retrofit2.Retrofit
+import retrofit2.converter.moshi.MoshiConverterFactory
+import retrofit2.http.GET
 
 class MainActivity : AppCompatActivity() {
 
-    private val client = HttpClient {
-        install(ContentNegotiation) {
-            json(
-                Json {
-                    ignoreUnknownKeys = true
-                }
-            )
-        }
-    }
+    private val gitHubApi = Retrofit.Builder()
+        .baseUrl("https://api.github.com")
+        .addConverterFactory(MoshiConverterFactory.create())
+        .build()
+        .create(GitHubApi::class.java)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            LiveReleases(client)
+            LiveReleases(gitHubApi)
         }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        client.close()
     }
 }
 
-@Serializable
-data class Release(val name: String)
+data class Release(@field:Json(name = "name") val name: String)
 
 @Composable
 fun Releases(releases: List<Release>) {
@@ -76,15 +63,18 @@ fun PreviewReleases() {
     Releases(releases)
 }
 
+interface GitHubApi {
+    @GET("/repos/jetbrains/kotlin/tags")
+    suspend fun tags(): List<Release>
+}
+
 @Composable
-fun LiveReleases(client: HttpClient) {
+fun LiveReleases(gitHubApi: GitHubApi) {
     val releases = remember { mutableStateListOf<Release>() }
 
     LaunchedEffect(releases) {
         releases.clear()
-        releases.addAll(
-            client.get("https://api.github.com/repos/jetbrains/kotlin/tags").body()
-        )
+        releases.addAll(gitHubApi.tags())
     }
 
     Releases(releases)
